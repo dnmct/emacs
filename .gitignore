@@ -53,5 +53,7 @@ projectile*
 # network security
 /network-security.data
 
+.local/
+
 
 # End of https://www.toptal.com/developers/gitignore/api/emacs

@@ -129,6 +129,9 @@
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
+;; unbind unwanted keys
+(define-key projectile-command-map (kbd "ESC") nil)
+
 (use-package general
   :config
   (general-evil-setup t)
@@ -136,7 +139,7 @@
     :prefix "C-c"
     :keymaps '(normal visual insert emacs)
     "t" '(:ignore t :wk "toggles")
-    "tt" 'modus-themes-toggle
+    "t t" 'modus-themes-toggle
     "f" '(:ignore t :wk "files")
     "p" '(:keymap projectile-command-map :wk "projects")))
 
