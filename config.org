@@ -13,7 +13,6 @@
   #+end_src
 
 * UI TWEAKS
-** General
    #+begin_src emacs-lisp
 
      (setq inhibit-startup-message t)
