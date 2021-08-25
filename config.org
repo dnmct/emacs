@@ -1,0 +1,391 @@
+#+TITLE: DNMCT Emacs Config
+#+AUTHOR: Dan McAtee
+* SETTINGS
+  #+begin_src emacs-lisp
+
+    (setq auto-save-default nil)
+    (setq make-backup-files nil)
+    (setq create-lockfiles nil)
+
+    (setq custom-file "~/.emacs.d/custom.el")
+    (load custom-file)
+
+  #+end_src
+
+* UI TWEAKS
+** General
+   #+begin_src emacs-lisp
+
+     (setq inhibit-startup-message t)
+
+     (scroll-bar-mode -1)
+     (tool-bar-mode -1)
+     (tooltip-mode -1)
+     (set-fringe-mode 10)
+     (menu-bar-mode -1)
+
+     (setq visible-bell t)
+
+     (column-number-mode t)
+
+     (add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+   #+end_src
+
+* FONTS
+   #+begin_src emacs-lisp
+
+     (set-face-attribute 'default nil :font "Iosevka Comfy" :height 190)
+     (set-face-attribute 'fixed-pitch nil :font "Iosevka Comfy" :height 190)
+     (set-face-attribute 'variable-pitch nil :font "SF Pro Text" :height 220)
+
+   #+end_src
+
+* PACKAGES
+** Setup straight
+   #+begin_src emacs-lisp
+
+     (defvar bootstrap-version)
+     (let ((bootstrap-file
+	 (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+	 (bootstrap-version 5))
+     (unless (file-exists-p bootstrap-file)
+	 (with-current-buffer
+	     (url-retrieve-synchronously
+	     "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+	     'silent 'inhibit-cookies)
+	 (goto-char (point-max))
+	 (eval-print-last-sexp)))
+     (load bootstrap-file nil 'nomessage))
+
+     (straight-use-package 'use-package)
+     (setq straight-use-package-by-default t)
+
+   #+end_src
+
+** Ivy
+   #+begin_src emacs-lisp
+
+     (use-package ivy
+       :diminish
+       :bind (("C-s" . swiper)
+	      :map ivy-minibuffer-map
+	      ("TAB" . ivy-alt-done)
+	      ("C-l" . ivy-alt-done)
+	      ("C-j" . ivy-next-line)
+	      ("C-k" . ivy-previous-line)
+	      :map ivy-switch-buffer-map
+	      ("C-k" . ivy-previous-line)
+	      ("C-l" . ivy-done)
+	      ("C-d" . ivy-switch-buffer-kill)
+	      :map ivy-reverse-i-search-map
+	      ("C-k" . ivy-previous-line)
+	      ("C-d" . ivy-reverse-i-search-kill))
+       :config
+       (ivy-mode 1))
+
+     (use-package swiper)
+
+     (use-package counsel
+       :bind (("M-x" . counsel-M-x)
+	      ("C-x b" . counsel-ibuffer)
+	      ("C-x C-f" . counsel-find-file)
+	      :map minibuffer-local-map
+	      ("C-r" . counsel-minibuffer-history))
+       :config
+       (setq ivy-initial-inputs-alist nil))
+
+     (use-package ivy-rich
+       :config
+       (ivy-rich-mode t))
+
+   #+end_src
+
+** Helpful
+   #+begin_src emacs-lisp
+
+     (use-package helpful
+       :custom
+       (counsel-describe-function-function #'helpful-callable)
+       (counsel-describe-variable-function #'helpful-variable)
+       :bind
+       ([remap describe-function] . counsel-describe-function)
+       ([remap describe-command] . helpful-command)
+       ([remap describe-variable] . counsel-describe-variable)
+       ([remap describe-key] . helpful-key))
+
+   #+end_src
+   
+** Projectile
+   #+begin_src emacs-lisp
+
+     (use-package projectile
+       :diminish projectile-mode
+       :init
+       (when (file-directory-p "~/dev")
+	 (setq projectile-project-search-path '("~/dev")))
+       :config
+       (projectile-mode)
+       (setq projectile-switch-project-action #'projectile-dired))
+
+     (use-package counsel-projectile
+       :config (counsel-projectile-mode))
+
+   #+end_src
+
+** Magit
+   #+begin_src emacs-lisp
+
+     (use-package magit
+       :commands (magit-status magit-get-current-branch)
+       :custom
+       (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+       (magit-define-global-key-bindings nil))
+
+   #+end_src
+
+** Evil
+   #+begin_src emacs-lisp
+
+     (use-package evil
+       :init
+       (setq evil-want-integration t)
+       (setq evil-want-keybinding nil)
+       (setq evil-want-C-u-scroll t)
+       (setq evil-vsplit-window-right t)
+       (setq evil-split-window-below t)
+       (setq evil-want-C-i-jump nil)
+       :config
+       (evil-mode 1)
+       (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+       (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
+
+       ;; Use visual line motions even outside of visual-line-mode buffers
+       (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+       (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+
+       (evil-set-initial-state 'messages-buffer-mode 'normal)
+       (evil-set-initial-state 'dashboard-mode 'normal))
+
+     (use-package evil-collection
+       :after evil
+       :config
+       (evil-collection-init))
+
+   #+end_src
+
+** Minions
+   #+begin_src emacs-lisp
+
+     (use-package minions
+       :config (minions-mode 1))
+
+   #+end_src
+
+** Org
+   #+begin_src emacs-lisp
+
+     (use-package org)
+
+     (require 'org-tempo)
+     (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+     (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+
+   #+end_src
+
+** Which Key
+   #+begin_src emacs-lisp
+
+     (use-package which-key
+       :diminish which-key-mode
+       :init (setq which-key-idle-delay 0.1)
+       :config (which-key-mode))
+
+   #+end_src
+
+** Web
+   #+begin_src emacs-lisp
+
+     (setq web-mode-markup-indent-offset 2)
+     (setq web-mode-code-indent-offset 2)
+     (setq web-mode-css-indent-offset 2)
+
+     (use-package web-mode
+       :mode (("\\.js\\'" . web-mode)
+	      ("\\.jsx\\'" . web-mode)
+	      ("\\.ts\\'" . web-mode)
+	      ("\\.tsx\\'" . web-mode)
+	      ("\\.html\\'" . web-mode))
+       :commands web-mode)
+
+   #+end_src
+
+** LSP
+   #+begin_src emacs-lisp
+
+     (setq lsp-log-io nil)
+     (setq lsp-restart 'auto-restart)
+
+
+     (use-package lsp-mode
+       :hook ((web-mode . lsp-deferred)
+	      (lsp-mode . lsp-enable-which-key-integration))
+       :commands lsp-deferred)
+
+   #+end_src
+
+** Prettier
+   #+begin_src emacs-lisp
+
+     (defun dnmct/enable-minor-mode (my-pair)
+       (if (buffer-file-name)
+	   (if(string-match (car my-pair) buffer-file-name)
+	       (funcall (cdr my-pair)))))
+
+     (use-package prettier-js)
+     (add-hook 'web-mode-hook #'(lambda ()
+				  (dnmct/enable-minor-mode
+				   '("\\.jsx?\\'" . prettier-js-mode))
+				  (dnmct/enable-minor-mode
+				   '("\\.tsx?\\'" . prettier-js-mode))))
+
+   #+end_src
+   
+** Company
+   #+begin_src emacs-lisp
+
+     (use-package company
+       :after lsp-mode
+       :hook (lsp-mode . company-mode)
+       :custom
+       (company-minimum-prefix-length 1)
+       (company-idle-delay 0.0))
+
+   #+end_src
+
+** Dired
+   #+begin_src emacs-lisp
+
+     (use-package dired
+       :straight nil
+       :commands (dired dired-jump)
+       :custom ((dired-listing-switches "-agho"))
+       :config
+       (evil-collection-define-key 'normal 'dired-mode-map
+	 "h" 'dired-single-up-directory
+	 "l" 'dired-single-buffer))
+
+     (use-package dired-single)
+
+   #+end_src
+
+* KEY BINDINGS
+** General
+   #+begin_src emacs-lisp
+
+     (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
+   #+end_src
+
+** Mac Specific
+   #+begin_src emacs-lisp
+
+     (setq mac-option-modifier 'meta)
+     (setq mac-command-modifier 'super)
+
+     (global-set-key [(super a)] 'mark-whole-buffer)
+     (global-set-key [(super v)] 'yank)
+     (global-set-key [(super c)] 'kill-ring-save)
+     (global-set-key [(super s)] 'save-buffer)
+     (global-set-key [(super l)] 'goto-line)
+     (global-set-key [(super w)]
+		     (lambda () (interactive) (delete-window)))
+     (global-set-key [(super z)] 'undo)
+     (global-set-key [(super q)] 'evil-quit-all)
+
+   #+end_src
+
+** Custom keymap
+   #+begin_src emacs-lisp
+
+      (use-package general
+	:config
+	(general-evil-setup t)
+	(nvmap
+	  :prefix "SPC"
+	  "SPC" '(counsel-M-x :wk "M-x")
+	  "." '(counsel-find-file :wk "Find File")
+	  "e" '(eval-last-sexp :wk "Eval block")
+	  ;; Toggles
+	  "t" '(:ignore t :wk "Toggles")
+	  "t t" '(modus-themes-toggle :wk "theme")
+	  ;; Files
+	  "f" '(:ignore t :wk "Files")
+	  "f s" '(swiper :wk "Swiper")
+	  "f f" '(counsel-find-file :wk "Find file")
+	  "f r" '(counsel-recentf :wk "Recent files")
+	  "f d" '(dired-jump :wk "Jump to dired")
+	  ;; Buffers
+	  "b" '(:ignore t :wk "Buffers")
+	  "b b" '(counsel-switch-buffer :wk "Switch buffer")
+	  "b B" '(ibuffer-list-buffers :wk "List buffer")
+	  "b k" '(kill-current-buffer :wk "Kill current buffer")
+	  "b K" '(kill-buffer :wk "Kill buffer")
+	  "b n" '(next-buffer :wk "Next buffer")
+	  "b p" '(previous-buffer :wk "Previous buffer")
+	  "b TAB" '(evil-switch-to-windows-last-buffer :wk "Toggle buffer")
+	  ;; Windows
+	  "w" '(:ignore t :wk "Windows")
+	  ;; Window Splits
+	  "w c" '(evil-window-delete :wk "Close window")
+	  "w n" '(evil-window-new :wk "New window")
+	  "w s" '(evil-window-split :wk "Horizontal split window")
+	  "w v" '(evil-window-vsplit :wk "Vertical split window")
+	  ;; Window Motions
+	  "w w" '(evil-window-next :wk "Next window")
+	  "w h" '(evil-window-left :wk "Window left")
+	  "w j" '(evil-window-down :wk "Window down")
+	  "w k" '(evil-window-up :wk "Window up")
+	  "w l" '(evil-window-right :wk "Window right")
+	  ;; Projects
+	  "p" '(:ignore t :wk "Projects")
+	  "p f" '(projectile-find-file :wk "Find File")
+	  ;; Helpful
+	  "h" '(:ignore t :wk "Help")
+	  "h v" '(helpful-variable :wk "Descibe variable")
+	  "h k" '(helpful-key :wk "Descibe key")
+	  "h f" '(helpful-function :wk "Descibe function")
+	  "h m" '(describe-mode :wk "Descibe mode")
+	  ;; LSP
+	  "l" '(:ignore t :wk "LSP")
+	  ;; Goto
+	  "l g" '(:ignore t :wk "Goto")
+	  "l g r" '(lsp-find-references :wk "Find references")
+	  "l g d" '(lsp-find-definition :wk "Find definition")
+	  ;; Refactor
+	  "l r" '(:ignore t :wk "Refactor")
+	  "l r r" '(lsp-rename :wk "Rename")
+	  ;; Magit
+	  "g" '(:ignore t :wk "Git")
+	  "g s" '(magit-status :wk "Status")
+	  "M-g" '(:ignore :wk "magit shit")))
+
+   #+end_src
+   
+* THEME
+  #+begin_src emacs-lisp
+
+    (use-package modus-themes
+      :init
+      (setq modus-themes-italic-constructs t
+	    modus-themes-bold-constructs nil
+	    modus-themes-region '(bg-only no-extend)
+	    modus-themes-org-blocks 'gray-background)
+      (modus-themes-load-themes)
+      :config
+      (modus-themes-load-operandi))
+
+
+  #+end_src
+
+  

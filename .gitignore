@@ -55,5 +55,8 @@ projectile*
 
 .local/
 
+config.el
+/transient/
+/recentf
 
 # End of https://www.toptal.com/developers/gitignore/api/emacs
